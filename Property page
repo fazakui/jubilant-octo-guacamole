@@ -1,0 +1,286 @@
+import 'package:flutter/material.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
+import 'package:fl_chart/fl_chart.dart';
+import 'package:studrent_cat/Administration%20Module/tableWidget2.dart';
+
+class PropertiesPage extends StatefulWidget {
+  const PropertiesPage({super.key});
+
+  @override
+  _PropertiesPageState createState() => _PropertiesPageState();
+}
+
+class _PropertiesPageState extends State<PropertiesPage> {
+  Map<String, int> propertiesByArea = {};
+  Map<String, int> propertiesByType = {};
+
+  final List<Color> darkerPastelColors = [
+    Color(0xFFD96666), // Dark pastel red
+    Color(0xFFD9A066), // Dark pastel orange
+    Color(0xFFE5D566), // Dark pastel yellow
+    Color(0xFF66B266), // Dark pastel green
+    Color(0xFF6699CC), // Dark pastel blue
+    Color(0xFF9A66CC), // Dark pastel purple
+  ];
+
+  @override
+  void initState() {
+    super.initState();
+    fetchPropertyData();
+  }
+
+  Future<void> fetchPropertyData() async {
+    final List<String> predefinedAreas = [
+      'Gelugor',
+      'Bayan Lepas',
+      'Sungai Dua',
+      'Georgetown',
+      'Jelutong',
+      'Air Itam',
+    ];
+
+    final querySnapshot =
+        await FirebaseFirestore.instance.collection('properties').get();
+
+    final Map<String, int> areaCount = {};
+    final Map<String, int> typeCount = {};
+
+    for (var doc in querySnapshot.docs) {
+      final data = doc.data();
+      final address = data['address'] as String? ?? '';
+      final type = data['propertyType'] as String? ?? 'Unknown Type';
+
+      String matchedArea = 'Unknown Area';
+      for (String area in predefinedAreas) {
+        if (address.contains(area)) {
+          matchedArea = area;
+          break;
+        }
+      }
+
+      areaCount[matchedArea] = (areaCount[matchedArea] ?? 0) + 1;
+      typeCount[type] = (typeCount[type] ?? 0) + 1;
+    }
+
+    setState(() {
+      propertiesByArea = areaCount;
+      propertiesByType = typeCount;
+    });
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(60.0),  // Adjust the height of the AppBar
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFF64B5F6), // Soft Sky Blue
+                Color(0xFF1976D2), // Slate Blue
+                Color(0xFF0D47A1), // Charcoal Blue
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: AppBar(
+            leading: null,
+            title: const Text(
+              "Property Management",
+              style: TextStyle(
+                color: Colors.white, // Change the text color to white to contrast with the gradient
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            centerTitle: true,
+            backgroundColor: Colors.transparent, // Make the AppBar's background transparent
+            elevation: 0,
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            const Text(
+              "Overview",
+              style: TextStyle(fontSize: 20, fontWeight: FontWeight.bold),
+            ),
+            const SizedBox(height: 16),
+
+            // Bar Chart: Properties by Area
+            const Text(
+              "Total Property Registrations by Area",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    blurRadius: 6,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: propertiesByArea.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : SizedBox(
+                      height: 300,
+                      child: BarChart(
+                        BarChartData(
+                          barGroups: propertiesByArea.entries
+                              .map(
+                                (entry) => BarChartGroupData(
+                                  x: propertiesByArea.keys.toList().indexOf(entry.key),
+                                  barRods: [
+                                    BarChartRodData(
+                                      toY: entry.value.toDouble(),
+                                      color: darkerPastelColors[
+                                          propertiesByArea.keys.toList().indexOf(entry.key) %
+                                              darkerPastelColors.length],
+                                      borderRadius: BorderRadius.circular(4),
+                                    ),
+                                  ],
+                                ),
+                              )
+                              .toList(),
+                          titlesData: FlTitlesData(
+                            leftTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                interval: 1, // This will set the interval between ticks to 1 (whole numbers)
+                                getTitlesWidget: (value, meta) {
+                                  return Text(
+                                    value.toInt().toString(),
+                                    style: const TextStyle(fontSize: 10),
+                                  );
+                                },
+                              ),
+                            ),
+                            rightTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+
+                            bottomTitles: AxisTitles(
+                              sideTitles: SideTitles(
+                                showTitles: true,
+                                getTitlesWidget: (value, meta) {
+                                  final areaIndex = value.toInt();
+                                  if (areaIndex >= 0 &&
+                                      areaIndex < propertiesByArea.keys.length) {
+                                    return Text(
+                                      propertiesByArea.keys.toList()[areaIndex],
+                                      style: const TextStyle(fontSize: 10),
+                                    );
+                                  }
+                                  return const SizedBox.shrink();
+                                },
+                              ),
+                            ),
+                            topTitles: AxisTitles(
+                              sideTitles: SideTitles(showTitles: false),
+                            ),
+                          ),
+                          gridData: FlGridData(show: false),
+                          borderData: FlBorderData(show: false),
+                        ),
+                      ),
+                    ),
+            ),
+
+            const SizedBox(height: 20),
+
+            // Pie Chart: Properties by Type
+            const Text(
+              "Total Property Registrations by Type",
+              style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
+            ),
+            const SizedBox(height: 8),
+            Container(
+              padding: const EdgeInsets.all(16),
+              decoration: BoxDecoration(
+                color: Colors.white,
+                borderRadius: BorderRadius.circular(10),
+                boxShadow: [
+                  BoxShadow(
+                    color: Colors.grey.withOpacity(0.2),
+                    blurRadius: 6,
+                    spreadRadius: 2,
+                  ),
+                ],
+              ),
+              child: propertiesByType.isEmpty
+                  ? const Center(child: CircularProgressIndicator())
+                  : Column(
+                      children: [
+                        SizedBox(
+                          height: 300,
+                          child: PieChart(
+                            PieChartData(
+                              sections: propertiesByType.entries
+                                  .map(
+                                    (entry) => PieChartSectionData(
+                                      value: entry.value.toDouble(),
+                                      title: "${entry.value}",
+                                      color: darkerPastelColors[
+                                          propertiesByType.keys.toList().indexOf(entry.key) %
+                                              darkerPastelColors.length],
+                                      radius: 80,
+                                      titleStyle: const TextStyle(
+                                        fontSize: 12,
+                                        fontWeight: FontWeight.bold,
+                                      ),
+                                    ),
+                                  )
+                                  .toList(),
+                              sectionsSpace: 4,
+                              centerSpaceRadius: 40,
+                            ),
+                          ),
+                        ),
+                        const SizedBox(height: 16),
+                        Wrap(
+                          alignment: WrapAlignment.center,
+                          spacing: 8,
+                          children: propertiesByType.entries.map((entry) {
+                            final index = propertiesByType.keys.toList().indexOf(entry.key);
+                            final color = darkerPastelColors[index % darkerPastelColors.length];
+                            return Row(
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Container(
+                                  width: 10,
+                                  height: 10,
+                                  decoration: BoxDecoration(
+                                    shape: BoxShape.circle,
+                                    color: color,
+                                  ),
+                                ),
+                                const SizedBox(width: 4),
+                                Text(
+                                  entry.key,
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ],
+                            );
+                          }).toList(),
+                        ),
+                      ],
+                    ),
+            ),
+            const SizedBox(height: 20),
+            TableWidget2(),
+          ],
+        ),
+      ),
+    );
+  }
+}

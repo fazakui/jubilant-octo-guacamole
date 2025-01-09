@@ -4,33 +4,62 @@ import 'package:flutter/material.dart';
 class UserInteractionPage extends StatelessWidget {
   const UserInteractionPage({super.key});
 
-  Future<void> flagItem(
+  // Method to flag an item with a confirmation dialog
+  Future<void> flagItemWithConfirmation(
     BuildContext context,
     String collectionName,
     String documentId,
     String userId,
   ) async {
-    try {
-      // Update the document in the collection
-      await FirebaseFirestore.instance.collection(collectionName).doc(documentId).update({
-        'flag': true,
-      });
+    bool? confirmFlag = await showDialog(
+      context: context,
+      builder: (context) => AlertDialog(
+        title: const Text("Confirm Action"),
+        content: const Text("Are you sure you want to flag this item as inappropriate?"),
+        actions: [
+          TextButton(
+            onPressed: () => Navigator.pop(context, false),
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () => Navigator.pop(context, true),
+            child: const Text("Confirm"),
+          ),
+        ],
+      ),
+    );
 
-      // Add the 'flag' field to the user document
-      await FirebaseFirestore.instance.collection('users').doc(userId).set(
-        {
+    if (confirmFlag == true) {
+      try {
+        var documentSnapshot =
+            await FirebaseFirestore.instance.collection(collectionName).doc(documentId).get();
+
+        if (!documentSnapshot.exists) {
+          ScaffoldMessenger.of(context).showSnackBar(
+            const SnackBar(content: Text("Document does not exist.")),
+          );
+          return;
+        }
+
+        await FirebaseFirestore.instance.collection(collectionName).doc(documentId).update({
           'flag': true,
-        },
-        SetOptions(merge: true),
-      );
+        });
 
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text("Item flagged as inappropriate")),
-      );
-    } catch (e) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        SnackBar(content: Text("Error flagging item: $e")),
-      );
+        await FirebaseFirestore.instance.collection('users').doc(userId).set(
+          {
+            'flag': true,
+          },
+          SetOptions(merge: true),
+        );
+
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(content: Text("Item flagged as inappropriate")),
+        );
+      } catch (e) {
+        ScaffoldMessenger.of(context).showSnackBar(
+          SnackBar(content: Text("Error flagging item: $e")),
+        );
+      }
     }
   }
 
@@ -98,7 +127,7 @@ class UserInteractionPage extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final review = reviews[index].data() as Map<String, dynamic>;
                     final reviewId = reviews[index].id;
-                    final userId = review['userId'] ?? ''; // Ensure this field exists in the review collection
+                    final userId = review['userId'] ?? '';
                     final propertyId = review['propertyID'] ?? 'N/A';
                     final reviewer = review['userName'] ?? 'Unknown';
                     final reviewText = review['reviewText'] ?? 'No review text.';
@@ -146,7 +175,7 @@ class UserInteractionPage extends StatelessWidget {
                                 ElevatedButton(
                                   onPressed: flagged
                                       ? null
-                                      : () => flagItem(
+                                      : () => flagItemWithConfirmation(
                                             context,
                                             'reviews',
                                             reviewId,
@@ -195,7 +224,7 @@ class UserInteractionPage extends StatelessWidget {
                   itemBuilder: (context, index) {
                     final comment = comments[index].data() as Map<String, dynamic>;
                     final commentId = comments[index].id;
-                    final userId = comment['userId'] ?? ''; // Ensure this field exists in the forum collection
+                    final userId = comment['userId'] ?? '';
                     final commentText = comment['commentText'] ?? 'No comment.';
                     final title = comment['title'] ?? 'No title.';
                     final userName = comment['name'] ?? 'Unknown';
@@ -230,7 +259,7 @@ class UserInteractionPage extends StatelessWidget {
                             ElevatedButton(
                               onPressed: flagged
                                   ? null
-                                  : () => flagItem(
+                                  : () => flagItemWithConfirmation(
                                         context,
                                         'forums',
                                         commentId,
@@ -254,4 +283,3 @@ class UserInteractionPage extends StatelessWidget {
     );
   }
 }
-

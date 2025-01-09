@@ -5,6 +5,7 @@ class FirebaseService {
   Future<int> getTotalProperties() async {
     final querySnapshot = await FirebaseFirestore.instance
         .collection('properties')
+        .where('status', isEqualTo: 'Approved')
         .get();
     return querySnapshot.size;
   }
@@ -29,7 +30,7 @@ class FirebaseService {
   Future<int> getPendingApprovals() async {
     final querySnapshot = await FirebaseFirestore.instance
         .collection('properties')
-        .where('status', isEqualTo: 'pending')
+        .where('status', isEqualTo: 'Pending')
         .get();
     return querySnapshot.size;
   }
@@ -54,12 +55,13 @@ Future<int> getIncompleteProperties() async {
 
   // Fetch safety badges count
   Future<int> getSafetyBadges() async {
-    final querySnapshot = await FirebaseFirestore.instance
-        .collection('properties')
-        .where('safetyBadges', isEqualTo: 'yes')
-        .get();
-    return querySnapshot.size;
-  }
+  final querySnapshot = await FirebaseFirestore.instance
+      .collection('properties')
+      .where('safetyBadges', isEqualTo: 'yes')  // Filter where safetyBadges is 'yes'
+      .where('status', isEqualTo: 'Approved')  // Add condition for status to be 'Approved'
+      .get();
+  return querySnapshot.size;
+}
 
   // Fetch all property data (for table admin)
   Future<List<Map<String, dynamic>>> getProperties() async {

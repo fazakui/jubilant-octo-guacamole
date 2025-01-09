@@ -113,7 +113,7 @@ class _PropertiesPageState extends State<PropertiesPage> {
 
             // Bar Chart: Properties by Area
             const Text(
-              "Total Property Registrations by Area",
+              "Total Properties by Area",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
@@ -133,7 +133,9 @@ class _PropertiesPageState extends State<PropertiesPage> {
               child: propertiesByArea.isEmpty
                   ? const Center(child: CircularProgressIndicator())
                   : SizedBox(
-                      height: 300,
+                    height: 300,
+                    child: Padding(
+                      padding: const EdgeInsets.symmetric(horizontal: 24.0, vertical: 16.0), // Padding around the chart
                       child: BarChart(
                         BarChartData(
                           barGroups: propertiesByArea.entries
@@ -147,6 +149,7 @@ class _PropertiesPageState extends State<PropertiesPage> {
                                           propertiesByArea.keys.toList().indexOf(entry.key) %
                                               darkerPastelColors.length],
                                       borderRadius: BorderRadius.circular(4),
+                                      width: 15, // Adjust this to change the width of the bars
                                     ),
                                   ],
                                 ),
@@ -156,11 +159,11 @@ class _PropertiesPageState extends State<PropertiesPage> {
                             leftTitles: AxisTitles(
                               sideTitles: SideTitles(
                                 showTitles: true,
-                                interval: 1, // This will set the interval between ticks to 1 (whole numbers)
+                                interval: 1,
                                 getTitlesWidget: (value, meta) {
                                   return Text(
                                     value.toInt().toString(),
-                                    style: const TextStyle(fontSize: 10),
+                                    style: const TextStyle(fontSize: 14),
                                   );
                                 },
                               ),
@@ -168,39 +171,64 @@ class _PropertiesPageState extends State<PropertiesPage> {
                             rightTitles: AxisTitles(
                               sideTitles: SideTitles(showTitles: false),
                             ),
-
                             bottomTitles: AxisTitles(
                               sideTitles: SideTitles(
                                 showTitles: true,
+                                reservedSize: 40, // Adjust to provide enough space for rotated labels
                                 getTitlesWidget: (value, meta) {
                                   final areaIndex = value.toInt();
-                                  if (areaIndex >= 0 &&
-                                      areaIndex < propertiesByArea.keys.length) {
-                                    return Text(
-                                      propertiesByArea.keys.toList()[areaIndex],
-                                      style: const TextStyle(fontSize: 10),
+                                  if (areaIndex >= 0 && areaIndex < propertiesByArea.keys.length) {
+                                    final title = propertiesByArea.keys.toList()[areaIndex];
+
+                                    // Rotate the text to avoid overlap
+                                    return Transform.rotate(
+                                      angle: -0.5, // Adjust the rotation angle (radians)
+                                      child: Text(
+                                        title,
+                                        style: const TextStyle(fontSize: 12),
+                                        textAlign: TextAlign.center,
+                                      ),
                                     );
                                   }
                                   return const SizedBox.shrink();
                                 },
                               ),
                             ),
+
+
                             topTitles: AxisTitles(
                               sideTitles: SideTitles(showTitles: false),
                             ),
                           ),
-                          gridData: FlGridData(show: false),
+                           gridData: FlGridData(
+                            show: true, // Show grid lines
+                            horizontalInterval: 1, // Controls the interval between horizontal lines
+                            getDrawingHorizontalLine: (value) {
+                              return FlLine(
+                                color: Colors.grey.withOpacity(0.5), // Line color
+                                strokeWidth: 1, // Line thickness
+                              );
+                            },
+                            getDrawingVerticalLine: (value) {
+                              return FlLine(
+                                color: Colors.transparent, // Make vertical lines transparent
+                                strokeWidth: 0,
+                              );
+                            },
+                          ),
                           borderData: FlBorderData(show: false),
                         ),
                       ),
                     ),
+                  )
+
             ),
 
-            const SizedBox(height: 20),
+            const SizedBox(height: 30),
 
             // Pie Chart: Properties by Type
             const Text(
-              "Total Property Registrations by Type",
+              "Total Type of House",
               style: TextStyle(fontSize: 18, fontWeight: FontWeight.w600),
             ),
             const SizedBox(height: 8),
@@ -222,7 +250,7 @@ class _PropertiesPageState extends State<PropertiesPage> {
                   : Column(
                       children: [
                         SizedBox(
-                          height: 300,
+                          height: 280,
                           child: PieChart(
                             PieChartData(
                               sections: propertiesByType.entries
@@ -233,16 +261,16 @@ class _PropertiesPageState extends State<PropertiesPage> {
                                       color: darkerPastelColors[
                                           propertiesByType.keys.toList().indexOf(entry.key) %
                                               darkerPastelColors.length],
-                                      radius: 80,
+                                      radius: 70,
                                       titleStyle: const TextStyle(
-                                        fontSize: 12,
+                                        fontSize: 14,
                                         fontWeight: FontWeight.bold,
                                       ),
                                     ),
                                   )
                                   .toList(),
                               sectionsSpace: 4,
-                              centerSpaceRadius: 40,
+                              centerSpaceRadius: 60,
                             ),
                           ),
                         ),

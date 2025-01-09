@@ -1,0 +1,177 @@
+import 'package:flutter/material.dart';
+import 'package:studrent_cat/Administration%20Module/firebase_admin.dart';
+
+class PropertyDetailsPage extends StatefulWidget {
+  final String landlordId;
+  final String propertyId;
+
+  const PropertyDetailsPage({
+    super.key,
+    required this.landlordId,
+    required this.propertyId,
+  });
+
+  @override
+  _PropertyDetailsPageState createState() => _PropertyDetailsPageState();
+}
+
+class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
+  final FirebaseService firebaseService = FirebaseService();
+  Map<String, dynamic>? propertyDetails;
+  bool isLoading = true;
+
+  @override
+  void initState() {
+    super.initState();
+    _fetchPropertyDetails();
+  }
+
+  Future<void> _fetchPropertyDetails() async {
+    final details = await firebaseService.getPropertyById(widget.propertyId);
+    setState(() {
+      propertyDetails = details;
+      isLoading = false;
+    });
+  }
+
+  Future<void> _updatePropertyStatus(String status) async {
+    await firebaseService.updatePropertyStatus(widget.propertyId, status);
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Property status updated to $status")),
+    );
+    Navigator.pop(context);
+  }
+
+  // Future<void> _updateSafetyBadge(bool isVerified) async {
+  //   await firebaseService.updateSafetyBadge(widget.propertyId, isVerified);
+  //   ScaffoldMessenger.of(context).showSnackBar(
+  //     SnackBar(content: Text("Safety badge updated to ${isVerified ? 'Verified' : 'Not Verified'}")),
+  //   );
+  //   Navigator.pop(context);
+  // }
+
+  @override
+  Widget build(BuildContext context) {
+    if (isLoading) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator()),
+      );
+    }
+
+    if (propertyDetails == null) {
+      return const Scaffold(
+        body: Center(child: Text("Property details not found.")),
+      );
+    }
+
+    return Scaffold(
+      appBar: PreferredSize(
+        preferredSize: Size.fromHeight(60.0),  // Adjust the height of the AppBar
+        child: Container(
+          decoration: BoxDecoration(
+            gradient: LinearGradient(
+              colors: [
+                Color(0xFF64B5F6), // Soft Sky Blue
+                Color(0xFF1976D2), // Slate Blue
+                Color(0xFF0D47A1), // Charcoal Blue
+              ],
+              begin: Alignment.topLeft,
+              end: Alignment.bottomRight,
+            ),
+          ),
+          child: AppBar(
+            leading: null,
+            title: const Text(
+              "Property Details",
+              style: TextStyle(
+                color: Colors.white, // Change the text color to white to contrast with the gradient
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            centerTitle: true,
+            backgroundColor: Colors.transparent, // Make the AppBar's background transparent
+            elevation: 0,
+          ),
+        ),
+      ),
+      body: SingleChildScrollView(
+        padding: const EdgeInsets.all(16.0),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text("Property ID: ${widget.propertyId}",
+              style: const TextStyle(
+              fontSize: 16,
+              fontWeight: FontWeight.bold,
+            )),
+            Card(
+              color: Colors.white,
+              margin: const EdgeInsets.symmetric(vertical: 8.0),
+              child: Padding(
+                padding: const EdgeInsets.all(16.0),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    const SizedBox(height: 10),
+                    ...propertyDetails!.entries.map((entry) {
+                      return Padding(
+                        padding: const EdgeInsets.symmetric(vertical: 4.0),
+                        child: Row(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Expanded(
+                              flex: 1,
+                              child: Text(
+                                "${entry.key}:",
+                                style: const TextStyle(
+                                  fontSize: 12,
+                                  fontWeight: FontWeight.w500,
+                                ),
+                              ),
+                            ),
+                            Expanded(
+                              flex: 2,
+                              child: Text(
+                                "${entry.value}",
+                                style: const TextStyle(fontSize: 12),
+                              ),
+                            ),
+                          ],
+                        ),
+                      );
+                    }),
+                  ],
+                ),
+              ),
+            ),
+            const SizedBox(height: 20),
+            Center(
+              child: Column(
+                children: [
+                  const SizedBox(height: 10),
+                  Row(
+                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                    children: [
+                      ElevatedButton(
+                        onPressed: () => _updatePropertyStatus("Approved"),
+                        child: const Text("Approve"),
+                      ),
+                      ElevatedButton(
+                        onPressed: () => _updatePropertyStatus("Rejected"),
+                        child: const Text("Reject"),
+                      ),
+                      // ElevatedButton(
+                      //   onPressed: () => _updateSafetyBadge(true),
+                      //   child: const Text("Verify Safety"),
+                      // ),
+                    ],
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+      ),
+    );
+  }
+}

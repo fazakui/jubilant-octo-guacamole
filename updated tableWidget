@@ -2,7 +2,6 @@ import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
 import 'package:studrent_cat/Administration%20Module/firebase_admin.dart';
 
-
 //----------------------admin dashboard---------------------------
 class TableWidget1 extends StatefulWidget {
   const TableWidget1({super.key});
@@ -156,7 +155,7 @@ class _TableWidget1State extends State<TableWidget1> {
               color: safetyBadge ? Colors.green : Colors.red,
             ),
             const SizedBox(width: 8),
-            Text(safetyBadge ? 'Verified' : ' '),
+            Text(safetyBadge ? 'Verified' : 'Not Verified'),
           ],
         ),
       ),

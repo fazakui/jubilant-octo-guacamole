@@ -1,4 +1,3 @@
-// ada tmbh matric card
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 //import 'package:studrent_cat/Administration%20Module/All%20Pages/barChart_report.dart';
@@ -84,7 +83,7 @@ class _AdminDashboardPageState extends State<AdminDashboardPage> {
                 mainAxisSpacing: 16,
                 children: [
                   _buildOverviewCard(
-                    "Verified properties listed",
+                    "Verified properties",
                     firebaseService.getTotalProperties(),
                     Icons.home,
                     Colors.blue,

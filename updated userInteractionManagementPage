@@ -67,33 +67,42 @@ class UserInteractionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: PreferredSize(
-        preferredSize: Size.fromHeight(60.0),
-        child: Container(
-          decoration: BoxDecoration(
-            gradient: LinearGradient(
-              colors: [
-                Color(0xFF64B5F6),
-                Color(0xFF1976D2),
-                Color(0xFF0D47A1),
-              ],
-              begin: Alignment.topLeft,
-              end: Alignment.bottomRight,
-            ),
-          ),
-          child: AppBar(
-            title: const Text(
-              "Safety Management",
-              style: TextStyle(
-                color: Colors.white,
-                fontWeight: FontWeight.bold,
+          preferredSize: Size.fromHeight(60.0),  // Adjust the height of the AppBar
+          child: Container(
+            decoration: BoxDecoration(
+              gradient: LinearGradient(
+                colors: [
+                  Color(0xFF64B5F6), // Soft Sky Blue
+                  Color(0xFF1976D2), // Slate Blue
+                  Color(0xFF0D47A1), // Charcoal Blue
+                ],
+                begin: Alignment.topLeft,
+                end: Alignment.bottomRight,
               ),
             ),
-            centerTitle: true,
-            backgroundColor: Colors.transparent,
-            elevation: 0,
+            child: AppBar(
+              leading: IconButton(
+                  icon: Icon(
+                    Icons.arrow_back, // Default back arrow icon
+                    color: Colors.white, // Change the back button color to white
+                  ),
+                  onPressed: () {
+                    Navigator.pop(context); // This will navigate back to the previous screen
+                  },
+                ),
+              title: const Text(
+                "User Interaction Management",
+                style: TextStyle(
+                  color: Colors.white, // Change the text color to white to contrast with the gradient
+                  fontWeight: FontWeight.bold,
+                ),
+              ),
+              centerTitle: true,
+              backgroundColor: Colors.transparent, // Make the AppBar's background transparent
+              elevation: 0,
+            ),
           ),
         ),
-      ),
       body: SingleChildScrollView(
         padding: const EdgeInsets.all(16.0),
         child: Column(

@@ -1,5 +1,8 @@
 import 'package:flutter/material.dart';
 import 'package:studrent_cat/Administration%20Module/firebase_admin.dart';
+import 'package:studrent_cat/Property%20Module/view_document.dart';
+import 'package:url_launcher/url_launcher.dart'; // Import for opening links
+import 'package:flutter/services.dart'; // Import for copying to clipboard
 
 class PropertyDetailsPage extends StatefulWidget {
   final String landlordId;
@@ -35,20 +38,110 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
   }
 
   Future<void> _updatePropertyStatus(String status) async {
-    await firebaseService.updatePropertyStatus(widget.propertyId, status);
+    final adminId = "admin_123"; // Replace with the actual admin ID
+    await firebaseService.updatePropertyStatusAndReview(
+      widget.propertyId,
+      status,
+      adminId,
+    );
     ScaffoldMessenger.of(context).showSnackBar(
       SnackBar(content: Text("Property status updated to $status")),
     );
     Navigator.pop(context);
   }
 
-  // Future<void> _updateSafetyBadge(bool isVerified) async {
-  //   await firebaseService.updateSafetyBadge(widget.propertyId, isVerified);
-  //   ScaffoldMessenger.of(context).showSnackBar(
-  //     SnackBar(content: Text("Safety badge updated to ${isVerified ? 'Verified' : 'Not Verified'}")),
-  //   );
-  //   Navigator.pop(context);
-  // }
+  // Method to open a URL (for documents) or copy to clipboard
+  Future<void> _openOrCopyDocument(String url) async {
+  Navigator.push(
+    context,
+    MaterialPageRoute(
+      builder: (context) => ViewDocumentScreen(
+        filePath: url,
+        fileType: url.endsWith(".pdf") ? "pdf" : "image",
+      ),
+    ),
+  );
+}
+
+
+  Future<void> _rejectProperty() async {
+    final reasons = [
+      "Inappropriate image/document",
+      "Inappropriate details in pre-draft agreement",
+      "Inappropriate property details",
+      "Other"
+    ];
+
+    final selectedReasons = <String>{};
+
+    await showDialog(
+      context: context,
+      builder: (context) {
+        return AlertDialog(
+        title: const Text("Select Rejection Reasons"),
+        content: StatefulBuilder(
+          builder: (BuildContext context, StateSetter setState) {
+            return SingleChildScrollView(
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: reasons.map((reason) {
+                  return CheckboxListTile(
+                    title: Text(reason),
+                    value: selectedReasons.contains(reason),
+                    onChanged: (bool? value) {
+                      setState(() {
+                        if (value == true) {
+                          selectedReasons.add(reason);
+                        } else {
+                          selectedReasons.remove(reason);
+                        }
+                      });
+                    },
+                  );
+                }).toList(),
+              ),
+            );
+          },
+        ),
+        actions: [
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text("Cancel"),
+          ),
+          TextButton(
+            onPressed: () {
+              Navigator.of(context).pop();
+            },
+            child: const Text("Confirm"),
+          ),
+        ],
+      );
+      },
+    );
+
+    if (selectedReasons.isNotEmpty) {
+    // Combine selected reasons into a single string
+    final combinedReasons = selectedReasons.join(", ");
+    final adminId = "admin_123"; // Replace with the actual admin ID
+
+    // Save rejection reasons and update status in Firebase
+    await firebaseService.updatePropertyStatusAndReason(
+      widget.propertyId,
+      "Rejected",
+      combinedReasons,
+      adminId,
+    );
+
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(content: Text("Property rejected due to: $combinedReasons")),
+    );
+
+    Navigator.pop(context);
+  }
+}
+
 
   @override
   Widget build(BuildContext context) {
@@ -63,6 +156,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         body: Center(child: Text("Property details not found.")),
       );
     }
+  //final isSafetyVerified = propertyDetails?['isSafetyVerified'] ?? false;
 
     return Scaffold(
       appBar: PreferredSize(
@@ -99,11 +193,33 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            Text("Property ID: ${widget.propertyId}",
+            Text(
+              "Property ID: ${widget.propertyId}",
               style: const TextStyle(
-              fontSize: 16,
-              fontWeight: FontWeight.bold,
-            )),
+                fontSize: 16,
+                fontWeight: FontWeight.bold,
+              ),
+            ),
+            // if (isSafetyVerified)
+            //     Padding(
+            //       padding: const EdgeInsets.only(left: 8.0),
+            //       child: Image.asset(
+            //         'assets/images/safety_badge.png',
+            //         width: 24, // Adjust size as needed
+            //         height: 24,
+            //       ),
+            //     ),
+            const SizedBox(height: 10),
+            if (propertyDetails?['reviewedBy'] != null)
+              Text(
+                "Reviewed By: ${propertyDetails!['reviewedBy']}",
+                style: const TextStyle(fontSize: 14),
+              ),
+            if (propertyDetails?['reviewedAt'] != null)
+              Text(
+                "Reviewed At: ${propertyDetails!['reviewedAt']}",
+                style: const TextStyle(fontSize: 14),
+              ),
             Card(
               color: Colors.white,
               margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -114,32 +230,96 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                   children: [
                     const SizedBox(height: 10),
                     ...propertyDetails!.entries.map((entry) {
-                      return Padding(
-                        padding: const EdgeInsets.symmetric(vertical: 4.0),
-                        child: Row(
+                      if (entry.key == "images") {
+                        // Handle images
+                        List<dynamic> imageUrls = entry.value as List<dynamic>;
+                        return Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Expanded(
-                              flex: 1,
-                              child: Text(
-                                "${entry.key}:",
-                                style: const TextStyle(
-                                  fontSize: 12,
-                                  fontWeight: FontWeight.w500,
+                            const Text(
+                              "Images:",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            ...imageUrls.map((url) => Padding(
+                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
+                                  child: Image.network(
+                                    url,
+                                    height: 200,
+                                    fit: BoxFit.cover,
+                                  ),
+                                )),
+                          ],
+                        );
+                      } else if (entry.key == "document") {
+                        // Handle documents
+                        List<dynamic> documentUrls = entry.value as List<dynamic>;
+                        return Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text(
+                              "Documents:",
+                              style: TextStyle(
+                                fontSize: 12,
+                                fontWeight: FontWeight.bold,
+                              ),
+                            ),
+                            ...documentUrls.map((url) => Padding(
+                              padding: const EdgeInsets.symmetric(vertical: 4.0),
+                              child: GestureDetector(
+                                onTap: () => _openOrCopyDocument(url),
+                                child: Row(
+                                  children: [
+                                    const Icon(Icons.description, color: Colors.blue),
+                                    const SizedBox(width: 8),
+                                    Text(
+                                      url.endsWith(".pdf") ? "Open PDF" : "Open Image",
+                                      style: const TextStyle(
+                                        color: Colors.blue,
+                                        decoration: TextDecoration.underline,
+                                      ),
+                                    ),
+                                  ],
                                 ),
                               ),
-                            ),
-                            Expanded(
-                              flex: 2,
-                              child: Text(
-                                "${entry.value}",
-                                style: const TextStyle(fontSize: 12),
-                              ),
-                            ),
+                            )),
+
                           ],
-                        ),
-                      );
+                        );
+                      } else {
+                        // Render other fields
+                        return Padding(
+                          padding: const EdgeInsets.symmetric(vertical: 4.0),
+                          child: Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Expanded(
+                                flex: 1,
+                                child: Text(
+                                  "${entry.key}:",
+                                  style: const TextStyle(
+                                    fontSize: 12,
+                                    fontWeight: FontWeight.w500,
+                                  ),
+                                ),
+                              ),
+                              Expanded(
+                                flex: 2,
+                                child: Text(
+                                  "${entry.value}",
+                                  style: const TextStyle(fontSize: 12),
+                                ),
+                              ),
+                            ],
+                          ),
+                        );
+                      }
                     }),
+                    const SizedBox(height: 10),
+                    Text("Reviewed By: ${propertyDetails!['reviewedBy'] ?? 'N/A'}"),
+                    Text("Reviewed At: ${propertyDetails!['reviewedAt']?.toString() ?? 'N/A'}"),
                   ],
                 ),
               ),
@@ -157,13 +337,9 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                         child: const Text("Approve"),
                       ),
                       ElevatedButton(
-                        onPressed: () => _updatePropertyStatus("Rejected"),
+                        onPressed: () => _rejectProperty(),
                         child: const Text("Reject"),
                       ),
-                      // ElevatedButton(
-                      //   onPressed: () => _updateSafetyBadge(true),
-                      //   child: const Text("Verify Safety"),
-                      // ),
                     ],
                   ),
                 ],

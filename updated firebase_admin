@@ -96,25 +96,39 @@ Future<int> getIncompleteProperties() async {
     }
   }
   // Update property status
-  Future<void> updatePropertyStatus(String propertyId, String status) async {
-    await FirebaseFirestore.instance
-        .collection('properties')
-        .doc(propertyId)
-        .update({'status': status});
-  }
+  // Update property status with review details
+Future<void> updatePropertyStatusAndReview(
+    String propertyId, String status, String reviewedBy) async {
+  await FirebaseFirestore.instance.collection('properties').doc(propertyId).update({
+    'status': status,
+    'reviewedBy': reviewedBy,
+    'reviewedAt': DateTime.now().toIso8601String(),
+  });
+}
 
   // Update safety badge
-  Future<void> updateSafetyBadge(String propertyId, bool isVerified) async {
+  Future<void> updateSafetyBadge(String propertyId, bool isVerified, String rejectionMessage) async {
     await FirebaseFirestore.instance
         .collection('properties')
         .doc(propertyId)
-        .update({'safetyBadges': isVerified ? 'yes' : 'no'});
+        .update({
+          'safetyBadges': isVerified ? 'yes' : 'no',
+          'messageRejectSafety': rejectionMessage,
+        });
   }
-//   Future<File> savePdfFile(Document pdf) async {
-//   final output = await getTemporaryDirectory();
-//   final file = File("${output.path}/report.pdf");
-//   await file.writeAsBytes(await pdf.save());
-//   return file;
-// }
+
+  // Update property status with rejection reason
+// Update property status with rejection reason and review details
+Future<void> updatePropertyStatusAndReason(
+    String propertyId, String status, String reason, String reviewedBy) async {
+  await FirebaseFirestore.instance.collection('properties').doc(propertyId).update({
+    'status': status,
+    'messageReject': reason,
+    'reviewedBy': reviewedBy,
+    'reviewedAt': DateTime.now().toString(),
+  });
+
 }
+
+  updatePropertyStatus(String propertyId, String s) {}}
 

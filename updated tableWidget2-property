@@ -44,12 +44,13 @@ class _TableWidget2State extends State<TableWidget2> {
     //await _firebaseService.updateSafetyBadge(propertyId, hasRequiredItems);
     if (hasRequiredItems) {
     // Update safety badge and additional items only if the admin has approved the property
-    await _firebaseService.updateSafetyBadge(propertyId, true);
+    await _firebaseService.updateSafetyBadge(propertyId, true, '');
   } else {
     // Mark as not safety-verified and rejected if safety is not verified or admin hasn't approved
-    await _firebaseService.updateSafetyBadge(propertyId, false);
+    const rejectionMessage = 'Property rejected due to missing required safety items: Secure Locks, Proper Lighting.';
+    await _firebaseService.updateSafetyBadge(propertyId, false, rejectionMessage);
     await _firebaseService.updatePropertyStatus(propertyId, 'Rejected');
-  }
+    }
   }
 
   @override
@@ -129,6 +130,10 @@ class _TableWidget2State extends State<TableWidget2> {
 
   DataRow _buildDataRow(String propertyId, String ownerId, String createdAt, String approvalStatus, bool safetyBadge, BuildContext context) {
     return DataRow(cells: [
+      DataCell(Row(
+      children: [
+      ],
+    )),
       DataCell(Text(propertyId)),
       DataCell(Text(ownerId)),
       DataCell(Text(createdAt)),

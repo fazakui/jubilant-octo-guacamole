@@ -21,37 +21,37 @@ class _TableWidget2State extends State<TableWidget2> {
   }
 
   void _fetchProperties() async {
-    final fetchedProperties = await _firebaseService.getProperties();
+    final fetchedProperties = await _firebaseService.getPropertiesWithLandlordNames();
 
-    // Evaluate safety badges only, do not update the status here
-    for (final property in fetchedProperties) {
-      final propertyId = property['propertyId'];
-      if (propertyId != null) {
-        await _evaluateSafetyChecklist(property, propertyId);
-      }
-    }
+    // // Evaluate safety badges only, do not update the status here
+    // for (final property in fetchedProperties) {
+    //   final propertyId = property['propertyId'];
+    //   if (propertyId != null) {
+    //     await _evaluateSafetyChecklist(property, propertyId);
+    //   }
+    // }
 
     setState(() {
       properties = fetchedProperties;
     });
   }
 
-  Future<void> _evaluateSafetyChecklist(Map<String, dynamic> property, String propertyId) async {
-    final safetyChecklist = property['safetynsecurity'] as List<dynamic>? ?? [];
-    const requiredItems = ['Secure Locks', 'Proper Lighting'];
+  // Future<void> _evaluateSafetyChecklist(Map<String, dynamic> property, String propertyId) async {
+  //   final safetyChecklist = property['safetynsecurity'] as List<dynamic>? ?? [];
+  //   const requiredItems = ['Secure Locks', 'Proper Lighting'];
 
-    final hasRequiredItems = requiredItems.every((item) => safetyChecklist.contains(item));
-    //await _firebaseService.updateSafetyBadge(propertyId, hasRequiredItems);
-    if (hasRequiredItems) {
-    // Update safety badge and additional items only if the admin has approved the property
-    await _firebaseService.updateSafetyBadge(propertyId, true, '');
-  } else {
-    // Mark as not safety-verified and rejected if safety is not verified or admin hasn't approved
-    const rejectionMessage = 'Property rejected due to missing required safety items: Secure Locks, Proper Lighting.';
-    await _firebaseService.updateSafetyBadge(propertyId, false, rejectionMessage);
-    await _firebaseService.updatePropertyStatus(propertyId, 'Rejected');
-    }
-  }
+  //   final hasRequiredItems = requiredItems.every((item) => safetyChecklist.contains(item));
+  //   //await _firebaseService.updateSafetyBadge(propertyId, hasRequiredItems);
+  //   if (hasRequiredItems) {
+  //   // Update safety badge and additional items only if the admin has approved the property
+  //   await _firebaseService.updateSafetyBadge(propertyId, true, '');
+  // } else {
+  //   // Mark as not safety-verified and rejected if safety is not verified or admin hasn't approved
+  //   const rejectionMessage = 'Property rejected due to missing required safety items: Secure Locks, Proper Lighting.';
+  //   await _firebaseService.updateSafetyBadge(propertyId, false, rejectionMessage);
+  //   await _firebaseService.updatePropertyStatus(propertyId, 'Rejected');
+  //   }
+  // }
 
   @override
   Widget build(BuildContext context) {
@@ -86,26 +86,28 @@ class _TableWidget2State extends State<TableWidget2> {
                   scrollDirection: Axis.horizontal,
                   child: DataTable(
                     columns: [
-                      _buildDataColumn('Property ID'),
-                      _buildDataColumn('Landlord ID'),
+                      _buildDataColumn('Property Name'),
+                      _buildDataColumn('Landlord Name'),
                       _buildDataColumn('Date Added'),
                       _buildDataColumn('Status'),
                       _buildDataColumn('Safety Badge'),
                       _buildDataColumn('View Details'),
                     ],
                     rows: properties.map((property) {
-                      final propertyId = property['propertyId'] ?? 'N/A';
-                      final ownerId = property['ownerId'] ?? 'N/A';
+                      final propertyName = property['propertyName'] ?? 'N/A';
+                      final landlordName = property['landlordName'] ?? 'N/A';
                       final createdAt = property['createdAt']?.toString() ?? 'N/A';
                       final approvalStatus = property['status'] ?? 'Pending';
                       final safetyBadge = property['isSafetyVerified'] == true;
 
                       return _buildDataRow(
-                        propertyId,
-                        ownerId,
+                        propertyName,
+                        landlordName,
                         createdAt,
                         approvalStatus,
                         safetyBadge,
+                        property['propertyId'] ?? 'N/A',
+                        property['landlordId'] ?? 'N/A',
                         context,
                       );
                     }).toList(),
@@ -128,14 +130,10 @@ class _TableWidget2State extends State<TableWidget2> {
     );
   }
 
-  DataRow _buildDataRow(String propertyId, String ownerId, String createdAt, String approvalStatus, bool safetyBadge, BuildContext context) {
+  DataRow _buildDataRow(String propertyName, String landlordName, String createdAt, String approvalStatus, bool safetyBadge,String propertyId, String landlordId, BuildContext context) {
     return DataRow(cells: [
-      DataCell(Row(
-      children: [
-      ],
-    )),
-      DataCell(Text(propertyId)),
-      DataCell(Text(ownerId)),
+      DataCell(Text(propertyName)),
+      DataCell(Text(landlordName)),
       DataCell(Text(createdAt)),
       DataCell(Row(
         children: [
@@ -180,7 +178,7 @@ class _TableWidget2State extends State<TableWidget2> {
                     MaterialPageRoute(
                       builder: (context) => PropertyDetailsPage(
                         propertyId: propertyId,
-                        landlordId: ownerId,
+                        landlordId: landlordName,
                       ),
                     ),
                   );

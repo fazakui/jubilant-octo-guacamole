@@ -21,7 +21,7 @@ class _TableWidget1State extends State<TableWidget1> {
   }
 
   Future<void> _fetchProperties() async {
-    final data = await firebaseService.getProperties();
+    final data = await firebaseService.getPropertiesWithLandlordNames();  // Using updated method
     setState(() {
       properties = data;
     });
@@ -64,15 +64,15 @@ class _TableWidget1State extends State<TableWidget1> {
                   scrollDirection: Axis.horizontal,
                   child: DataTable(
                     columns: [
-                      _buildDataColumn('Property ID'),
-                      _buildDataColumn('Landlord ID'),
+                      _buildDataColumn('Property Name'),
+                      _buildDataColumn('Landlord Name'),
                       _buildDataColumn('Date Added'),
                       _buildDataColumn('Status'),
                       _buildDataColumn('Safety Badge'),
                     ],
                     rows: properties.map((property) {
-                      final propertyId = property['propertyId'] ?? 'N/A';
-                      final ownerId = property['ownerId'] ?? 'N/A';
+                      final propertyName = property['propertyName'] ?? 'N/A';  // Get property name
+                      final landlordName = property['landlordName'] ?? 'N/A';  // Get landlord name
                       final createdAt = property['createdAt'];
                       // Check if createdAt is a Timestamp and convert to DateTime
                       final dateAdded = (createdAt is Timestamp)
@@ -83,8 +83,8 @@ class _TableWidget1State extends State<TableWidget1> {
                       final safetyBadge = property['safetyBadges'] == 'yes';
 
                       return _buildDataRow(
-                        ownerId,
-                        propertyId,
+                        propertyName,
+                        landlordName,
                         dateAdded.toString(),
                         approvalStatus,
                         safetyBadge,
@@ -117,11 +117,11 @@ class _TableWidget1State extends State<TableWidget1> {
     );
   }
 
-  DataRow _buildDataRow(String propertyId, String ownerId, String createdAt, String approvalStatus, bool safetyBadge) {
+  DataRow _buildDataRow(String propertyName, String landlordName, String createdAt, String approvalStatus, bool safetyBadge) {
 
     return DataRow(cells: [
-      DataCell(Text(propertyId)),
-      DataCell(Text(ownerId)),
+      DataCell(Text(propertyName)),
+      DataCell(Text(landlordName)),
       DataCell(Text(createdAt)),
       DataCell(
         Row(

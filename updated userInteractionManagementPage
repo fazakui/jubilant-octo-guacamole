@@ -143,6 +143,16 @@ class UserInteractionPage extends StatelessWidget {
                     final rating = review['safetyRating'] ?? 0;
                     final flagged = review['flag'] ?? false;
 
+                    return FutureBuilder<DocumentSnapshot>(
+                      future: FirebaseFirestore.instance
+                          .collection('properties') // Assuming the property data is in the 'properties' collection
+                          .doc(propertyId)
+                          .get(),
+                      builder: (context, snapshot) {
+                        String propertyName = 'Unknown Property';
+                        if (snapshot.hasData && snapshot.data!.exists) {
+                          propertyName = snapshot.data!.get('propertyName') ?? 'Unnamed Property';
+                        }
                     return Card(
                       color: Colors.white,
                       margin: const EdgeInsets.symmetric(vertical: 8.0),
@@ -156,7 +166,7 @@ class UserInteractionPage extends StatelessWidget {
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
                             Text(
-                              "Property ID: $propertyId",
+                              "Property Name: $propertyName",
                               style: const TextStyle(
                                 fontWeight: FontWeight.bold,
                               ),
@@ -198,7 +208,9 @@ class UserInteractionPage extends StatelessWidget {
                             ),
                           ],
                         ),
-                      ),
+                      )
+                      );
+                      },
                     );
                   },
                 );

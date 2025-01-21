@@ -95,7 +95,48 @@ Future<int> getIncompleteProperties() async {
       throw Exception("Property not found");
     }
   }
-  // Update property status
+  // get landlord name
+  Future<String?> getLandlordName(String landlordId) async {
+    final docSnapshot = await FirebaseFirestore.instance
+        .collection('landlords')
+        .doc(landlordId)
+        .get();
+
+    if (docSnapshot.exists) {
+      return docSnapshot.data()?['name'];
+    }
+    return null; // Return null if landlord not found
+  }
+
+  // Fetch all property data with landlord name
+  Future<List<Map<String, dynamic>>> getPropertiesWithLandlordNames() async {
+    final propertiesSnapshot = await FirebaseFirestore.instance.collection('properties').get();
+
+    // Map property data with landlord names
+    return await Future.wait(propertiesSnapshot.docs.map((doc) async {
+      final propertyData = doc.data();
+      if (propertyData['createdAt'] is Timestamp) {
+        propertyData['createdAt'] = (propertyData['createdAt'] as Timestamp).toDate();
+      }
+
+      // Fetch landlord details
+      String landlordName = 'Unknown Landlord';
+      if (propertyData['ownerId'] != null) {
+        final landlordDoc = await FirebaseFirestore.instance.collection('landlords').doc(propertyData['ownerId']).get();
+        if (landlordDoc.exists) {
+          landlordName = landlordDoc.data()?['name'] ?? 'Unknown Landlord';
+        }
+      }
+
+      return {
+        ...propertyData,
+        'propertyName': propertyData['propertyName'] ?? 'Unnamed Property',
+        'landlordName': landlordName,
+        'isSafetyVerified': propertyData['safetyBadges'] == 'yes', // Check for safety badge
+      };
+    }).toList());
+  }
+
   // Update property status with review details
 Future<void> updatePropertyStatusAndReview(
     String propertyId, String status, String reviewedBy) async {
@@ -123,7 +164,7 @@ Future<void> updatePropertyStatusAndReason(
     String propertyId, String status, String reason, String reviewedBy) async {
   await FirebaseFirestore.instance.collection('properties').doc(propertyId).update({
     'status': status,
-    'messageReject': reason,
+    'messageRejectProperty': reason,
     'reviewedBy': reviewedBy,
     'reviewedAt': DateTime.now().toString(),
   });

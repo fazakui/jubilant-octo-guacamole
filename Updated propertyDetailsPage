@@ -1,8 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:studrent_cat/Administration%20Module/firebase_admin.dart';
 import 'package:studrent_cat/Property%20Module/view_document.dart';
-import 'package:url_launcher/url_launcher.dart'; // Import for opening links
-import 'package:flutter/services.dart'; // Import for copying to clipboard
 
 class PropertyDetailsPage extends StatefulWidget {
   final String landlordId;
@@ -36,7 +34,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
       isLoading = false;
     });
   }
-
+  
   Future<void> _updatePropertyStatus(String status) async {
     final adminId = "admin_123"; // Replace with the actual admin ID
     await firebaseService.updatePropertyStatusAndReview(
@@ -156,8 +154,6 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         body: Center(child: Text("Property details not found.")),
       );
     }
-  //final isSafetyVerified = propertyDetails?['isSafetyVerified'] ?? false;
-
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(60.0),  // Adjust the height of the AppBar
@@ -194,21 +190,12 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             Text(
-              "Property ID: ${widget.propertyId}",
+              "Property Name: ${propertyDetails?['propertyName'] ?? 'Unknown Property'}",
               style: const TextStyle(
-                fontSize: 16,
+                fontSize: 18,
                 fontWeight: FontWeight.bold,
               ),
             ),
-            // if (isSafetyVerified)
-            //     Padding(
-            //       padding: const EdgeInsets.only(left: 8.0),
-            //       child: Image.asset(
-            //         'assets/images/safety_badge.png',
-            //         width: 24, // Adjust size as needed
-            //         height: 24,
-            //       ),
-            //     ),
             const SizedBox(height: 10),
             if (propertyDetails?['reviewedBy'] != null)
               Text(
@@ -230,6 +217,32 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                   children: [
                     const SizedBox(height: 10),
                     ...propertyDetails!.entries.map((entry) {
+                      final Map<String, String> fieldNames = {
+                        "rentType": "Type of Rent",
+                        "numberOfRooms": "Number of Rooms",
+                        "utilities": "Utilities Provided",
+                        "description": "Description",
+                        "distance": "Distance to USM (km)",
+                        "amenities": "Amenities",
+                        "leaseTerm": "Lease Term",
+                        "latitude": "Latitude",
+                        "longitude": "Longitude",
+                        "createdAt": "Created At",
+                        "ownerId": "Landlord ID",
+                        "safetyBadges": "Safety Verified",
+                        "rentAmount": "Rent Amount (RM) ",
+                        "propertyType": "Type of property",
+                        "propertyId": "Property ID",
+                        "roomType": "Type of room",
+                        "address": "Property address",
+                        "safetynsecurity": "Safety and security checklist",
+                        "size": "Property size",
+                        "status": "Property Status",
+                        "numberOfBathrooms": "Number of bathrooms",
+                        "messageReject": "Property rejection message",
+                        "messageRejectSafety": "Safety Rejection message",
+                        "additionalSafetyItems": "Additional safety items",
+                      };
                       if (entry.key == "images") {
                         // Handle images
                         List<dynamic> imageUrls = entry.value as List<dynamic>;
@@ -289,6 +302,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                           ],
                         );
                       } else {
+                        final fieldName = fieldNames[entry.key] ?? entry.key; // Default to original key if no match
                         // Render other fields
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -298,7 +312,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                               Expanded(
                                 flex: 1,
                                 child: Text(
-                                  "${entry.key}:",
+                                  "$fieldName:",
                                   style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,

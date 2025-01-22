@@ -154,6 +154,34 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
         body: Center(child: Text("Property details not found.")),
       );
     }
+    final Map<String, dynamic> fieldNames = {
+    "images": "Images",
+    "propertyId": "Property ID",
+    "ownerId": "Landlord ID",
+    "status": "Property Status",
+    "createdAt": "Created At",
+    "document": "Documents",
+    "address": "Property Address",
+    "latitude": "Latitude",
+    "longitude": "Longitude",
+    "distance": "Distance to USM (km)",
+    "rentAmount": "Rent Amount (RM)",
+    "size": "Property Size",
+    "rentType": "Type of Rent",
+    "propertyType": "Type of Property",
+    "roomType": "Type of Room",
+    "utilities": "Utilities Provided",
+    "amenities": "Amenities",
+    "furnishingType": "Furnishing Type",
+    "numberOfRooms": "Number of Rooms",
+    "numberOfBathrooms": "Number of Bathrooms",
+    "leaseTerm": "Lease Term",
+    "description": "Description",
+    "safetyBadges": "Safety Verified",
+    "safetynsecurity": "Safety and Security Checklist",
+    "messageReject": "Property Rejection Message",
+    "messageRejectSafety": "Safety Rejection Message",
+  };
     return Scaffold(
       appBar: PreferredSize(
         preferredSize: Size.fromHeight(60.0),  // Adjust the height of the AppBar
@@ -196,113 +224,95 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 fontWeight: FontWeight.bold,
               ),
             ),
-            const SizedBox(height: 10),
-            if (propertyDetails?['reviewedBy'] != null)
-              Text(
-                "Reviewed By: ${propertyDetails!['reviewedBy']}",
-                style: const TextStyle(fontSize: 14),
-              ),
-            if (propertyDetails?['reviewedAt'] != null)
-              Text(
-                "Reviewed At: ${propertyDetails!['reviewedAt']}",
-                style: const TextStyle(fontSize: 14),
-              ),
             Card(
-              color: Colors.white,
-              margin: const EdgeInsets.symmetric(vertical: 8.0),
-              child: Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    const SizedBox(height: 10),
-                    ...propertyDetails!.entries.map((entry) {
-                      final Map<String, String> fieldNames = {
-                        "rentType": "Type of Rent",
-                        "numberOfRooms": "Number of Rooms",
-                        "utilities": "Utilities Provided",
-                        "description": "Description",
-                        "distance": "Distance to USM (km)",
-                        "amenities": "Amenities",
-                        "leaseTerm": "Lease Term",
-                        "latitude": "Latitude",
-                        "longitude": "Longitude",
-                        "createdAt": "Created At",
-                        "ownerId": "Landlord ID",
-                        "safetyBadges": "Safety Verified",
-                        "rentAmount": "Rent Amount (RM) ",
-                        "propertyType": "Type of property",
-                        "propertyId": "Property ID",
-                        "roomType": "Type of room",
-                        "address": "Property address",
-                        "safetynsecurity": "Safety and security checklist",
-                        "size": "Property size",
-                        "status": "Property Status",
-                        "numberOfBathrooms": "Number of bathrooms",
-                        "messageReject": "Property rejection message",
-                        "messageRejectSafety": "Safety Rejection message",
-                        "additionalSafetyItems": "Additional safety items",
-                      };
-                      if (entry.key == "images") {
-                        // Handle images
-                        List<dynamic> imageUrls = entry.value as List<dynamic>;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              "Images:",
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            ...imageUrls.map((url) => Padding(
-                                  padding: const EdgeInsets.symmetric(vertical: 8.0),
-                                  child: Image.network(
-                                    url,
-                                    height: 200,
-                                    fit: BoxFit.cover,
-                                  ),
-                                )),
-                          ],
-                        );
-                      } else if (entry.key == "document") {
-                        // Handle documents
-                        List<dynamic> documentUrls = entry.value as List<dynamic>;
-                        return Column(
-                          crossAxisAlignment: CrossAxisAlignment.start,
-                          children: [
-                            const Text(
-                              "Documents:",
-                              style: TextStyle(
-                                fontSize: 12,
-                                fontWeight: FontWeight.bold,
-                              ),
-                            ),
-                            ...documentUrls.map((url) => Padding(
-                              padding: const EdgeInsets.symmetric(vertical: 4.0),
-                              child: GestureDetector(
-                                onTap: () => _openOrCopyDocument(url),
-                                child: Row(
-                                  children: [
-                                    const Icon(Icons.description, color: Colors.blue),
-                                    const SizedBox(width: 8),
-                                    Text(
-                                      url.endsWith(".pdf") ? "Open PDF" : "Open Image",
-                                      style: const TextStyle(
-                                        color: Colors.blue,
-                                        decoration: TextDecoration.underline,
-                                      ),
-                                    ),
-                                  ],
-                                ),
-                              ),
-                            )),
+  color: Colors.white,
+  margin: const EdgeInsets.symmetric(vertical: 8.0),
+  child: Padding(
+    padding: const EdgeInsets.all(16.0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        ...fieldNames.entries.map((entry) {
+          final key = entry.key;
+          final label = entry.value;
 
-                          ],
-                        );
-                      } else {
-                        final fieldName = fieldNames[entry.key] ?? entry.key; // Default to original key if no match
+          if (key == "images" && propertyDetails![key] != null) {
+            // Render images
+            List<dynamic> imageUrls = propertyDetails![key] as List<dynamic>;
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  label,
+                  style: const TextStyle(
+                    fontSize: 12,
+                    fontWeight: FontWeight.bold,
+                  ),
+                ),
+                const SizedBox(height: 8),
+                ...imageUrls.map((url) => Padding(
+                      padding: const EdgeInsets.symmetric(vertical: 8.0),
+                      child: Image.network(
+                        url,
+                        height: 200,
+                        fit: BoxFit.cover,
+                      ),
+                    )),
+              ],
+            );
+          } 
+          else if (key == "document" && propertyDetails![key] != null) {
+              // Render documents
+              List<dynamic> documentUrls = propertyDetails![key] as List<dynamic>;
+              return Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    label,
+                    style: const TextStyle(
+                      fontSize: 12,
+                      fontWeight: FontWeight.bold,
+                    ),
+                  ),
+                  const SizedBox(height: 8),
+                  ...documentUrls.map((documentUrl) {
+                    final documentName = Uri.parse(documentUrl).pathSegments.last;
+
+                    return Row(
+                      children: [
+                        Expanded(
+                          child: ElevatedButton.icon(
+                            onPressed: () {
+                              Navigator.push(
+                                context,
+                                MaterialPageRoute(
+                                  builder: (context) => ViewDocumentScreen(
+                                    filePath: documentUrl,
+                                    fileType: documentName.endsWith('.pdf') ? 'pdf' : 'image',
+                                  ),
+                                ),
+                              );
+                            },
+                            icon: const Icon(
+                              Icons.visibility,
+                              color: Colors.white,
+                            ),
+                            label: Text(
+                              "Open document",
+                              style: const TextStyle(color: Colors.white),
+                            ),
+                            style: ElevatedButton.styleFrom(
+                              backgroundColor: Colors.blue,
+                            ),
+                          ),
+                        ),
+                      ],
+                    );
+                  }).toList(),
+                ],
+              );
+            }
+            else if (propertyDetails![key] != null) {
                         // Render other fields
                         return Padding(
                           padding: const EdgeInsets.symmetric(vertical: 4.0),
@@ -312,7 +322,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                               Expanded(
                                 flex: 1,
                                 child: Text(
-                                  "$fieldName:",
+                                  "$label:",
                                   style: const TextStyle(
                                     fontSize: 12,
                                     fontWeight: FontWeight.w500,
@@ -322,7 +332,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                               Expanded(
                                 flex: 2,
                                 child: Text(
-                                  "${entry.value}",
+                                  "${propertyDetails![key]}",
                                   style: const TextStyle(fontSize: 12),
                                 ),
                               ),
@@ -330,14 +340,24 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                           ),
                         );
                       }
-                    }),
+                      return const SizedBox.shrink(); // Return empty widget if field is null
+                    }).toList(),
+                    const SizedBox(height: 10), // Add some space before the reviewed fields
+                    Text(
+                      "Reviewed By: ${propertyDetails!['reviewedBy'] ?? 'N/A'}",
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500,),
+                    ),
                     const SizedBox(height: 10),
-                    Text("Reviewed By: ${propertyDetails!['reviewedBy'] ?? 'N/A'}"),
-                    Text("Reviewed At: ${propertyDetails!['reviewedAt']?.toString() ?? 'N/A'}"),
+                    Text(
+                      "Reviewed At: ${propertyDetails!['reviewedAt']?.toString() ?? 'N/A'}",
+                      style: const TextStyle(fontSize: 12, fontWeight: FontWeight.w500,),
+                    ),
                   ],
                 ),
               ),
             ),
+
+  
             const SizedBox(height: 20),
             Center(
               child: Column(
@@ -359,6 +379,7 @@ class _PropertyDetailsPageState extends State<PropertyDetailsPage> {
                 ],
               ),
             ),
+            
           ],
         ),
       ),

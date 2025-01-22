@@ -35,33 +35,33 @@ class FirebaseService {
     return querySnapshot.size;
   }
   // Fetch rejected properties
-Future<int> getRejectedProperties() async {
-  final querySnapshot = await FirebaseFirestore.instance
-      .collection('properties')
-      .where('status', isEqualTo: 'Rejected')
-      .get();
-  return querySnapshot.size;
-}
+  Future<int> getRejectedProperties() async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('properties')
+        .where('status', isEqualTo: 'Rejected')
+        .get();
+    return querySnapshot.size;
+  }
 
-// Fetch incomplete properties
-Future<int> getIncompleteProperties() async {
-  final querySnapshot = await FirebaseFirestore.instance
-      .collection('properties')
-      .where('status', isEqualTo: 'Incomplete')
-      .get();
-  return querySnapshot.size;
-}
+  // Fetch incomplete properties
+  Future<int> getIncompleteProperties() async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('properties')
+        .where('status', isEqualTo: 'Incomplete')
+        .get();
+    return querySnapshot.size;
+  }
 
 
-  // Fetch safety badges count
-  Future<int> getSafetyBadges() async {
-  final querySnapshot = await FirebaseFirestore.instance
-      .collection('properties')
-      .where('safetyBadges', isEqualTo: 'yes')  // Filter where safetyBadges is 'yes'
-      .where('status', isEqualTo: 'Approved')  // Add condition for status to be 'Approved'
-      .get();
-  return querySnapshot.size;
-}
+    // Fetch safety badges count
+    Future<int> getSafetyBadges() async {
+    final querySnapshot = await FirebaseFirestore.instance
+        .collection('properties')
+        .where('safetyBadges', isEqualTo: 'yes')  // Filter where safetyBadges is 'yes'
+        .where('status', isEqualTo: 'Approved')  // Add condition for status to be 'Approved'
+        .get();
+    return querySnapshot.size;
+  }
 
   // Fetch all property data (for table admin)
   Future<List<Map<String, dynamic>>> getProperties() async {
@@ -138,14 +138,14 @@ Future<int> getIncompleteProperties() async {
   }
 
   // Update property status with review details
-Future<void> updatePropertyStatusAndReview(
-    String propertyId, String status, String reviewedBy) async {
-  await FirebaseFirestore.instance.collection('properties').doc(propertyId).update({
-    'status': status,
-    'reviewedBy': reviewedBy,
-    'reviewedAt': DateTime.now().toIso8601String(),
-  });
-}
+  Future<void> updatePropertyStatusAndReview(
+      String propertyId, String status, String reviewedBy) async {
+    await FirebaseFirestore.instance.collection('properties').doc(propertyId).update({
+      'status': status,
+      'reviewedBy': reviewedBy,
+      'reviewedAt': DateTime.now().toIso8601String(),
+    });
+  }
 
   // Update safety badge
   Future<void> updateSafetyBadge(String propertyId, bool isVerified, String rejectionMessage) async {
@@ -160,16 +160,24 @@ Future<void> updatePropertyStatusAndReview(
 
   // Update property status with rejection reason
 // Update property status with rejection reason and review details
-Future<void> updatePropertyStatusAndReason(
-    String propertyId, String status, String reason, String reviewedBy) async {
-  await FirebaseFirestore.instance.collection('properties').doc(propertyId).update({
-    'status': status,
-    'messageRejectProperty': reason,
-    'reviewedBy': reviewedBy,
-    'reviewedAt': DateTime.now().toString(),
-  });
-
+  Future<void> updatePropertyStatusAndReason(
+      String propertyId, String status, String reason, String reviewedBy) async {
+    await FirebaseFirestore.instance.collection('properties').doc(propertyId).update({
+      'status': status,
+      'messageRejectProperty': reason,
+      'reviewedBy': reviewedBy,
+      'reviewedAt': DateTime.now().toString(),
+    });
+  }
+  Future<void> updatePropertyStatus(
+      String propertyId, String status) async {
+    await FirebaseFirestore.instance.collection('properties').doc(propertyId).update({
+      'status': status,
+      // 'messageRejectProperty': reason,
+      // 'reviewedBy': reviewedBy,
+      // 'reviewedAt': DateTime.now().toString(),
+    });
+  }
 }
-
-  updatePropertyStatus(String propertyId, String s) {}}
+//  updatePropertyStatus(String propertyId, String s) {}}
 

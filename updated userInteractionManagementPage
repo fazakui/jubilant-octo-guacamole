@@ -109,7 +109,7 @@ class UserInteractionPage extends StatelessWidget {
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
             const Text(
-              "Overview of Reviews",
+              "Reviews",
               style: TextStyle(
                 fontSize: 20,
                 fontWeight: FontWeight.bold,

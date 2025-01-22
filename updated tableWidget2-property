@@ -23,35 +23,35 @@ class _TableWidget2State extends State<TableWidget2> {
   void _fetchProperties() async {
     final fetchedProperties = await _firebaseService.getPropertiesWithLandlordNames();
 
-    // // Evaluate safety badges only, do not update the status here
-    // for (final property in fetchedProperties) {
-    //   final propertyId = property['propertyId'];
-    //   if (propertyId != null) {
-    //     await _evaluateSafetyChecklist(property, propertyId);
-    //   }
-    // }
+    // Evaluate safety badges only, do not update the status here
+    for (final property in fetchedProperties) {
+      final propertyId = property['propertyId'];
+      if (propertyId != null) {
+        await _evaluateSafetyChecklist(property, propertyId);
+      }
+    }
 
     setState(() {
       properties = fetchedProperties;
     });
   }
 
-  // Future<void> _evaluateSafetyChecklist(Map<String, dynamic> property, String propertyId) async {
-  //   final safetyChecklist = property['safetynsecurity'] as List<dynamic>? ?? [];
-  //   const requiredItems = ['Secure Locks', 'Proper Lighting'];
+  Future<void> _evaluateSafetyChecklist(Map<String, dynamic> property, String propertyId) async {
+    final safetyChecklist = property['safetynsecurity'] as List<dynamic>? ?? [];
+    const requiredItems = ['Secure Locks', 'Proper Lighting'];
 
-  //   final hasRequiredItems = requiredItems.every((item) => safetyChecklist.contains(item));
-  //   //await _firebaseService.updateSafetyBadge(propertyId, hasRequiredItems);
-  //   if (hasRequiredItems) {
-  //   // Update safety badge and additional items only if the admin has approved the property
-  //   await _firebaseService.updateSafetyBadge(propertyId, true, '');
-  // } else {
-  //   // Mark as not safety-verified and rejected if safety is not verified or admin hasn't approved
-  //   const rejectionMessage = 'Property rejected due to missing required safety items: Secure Locks, Proper Lighting.';
-  //   await _firebaseService.updateSafetyBadge(propertyId, false, rejectionMessage);
-  //   await _firebaseService.updatePropertyStatus(propertyId, 'Rejected');
-  //   }
-  // }
+    final hasRequiredItems = requiredItems.every((item) => safetyChecklist.contains(item));
+    //await _firebaseService.updateSafetyBadge(propertyId, hasRequiredItems);
+    if (hasRequiredItems) {
+    // Update safety badge and additional items only if the admin has approved the property
+    await _firebaseService.updateSafetyBadge(propertyId, true, '');
+  } else {
+    // Mark as not safety-verified and rejected if safety is not verified or admin hasn't approved
+    const rejectionMessage = 'Property rejected due to missing required safety items: Secure Locks, Proper Lighting.';
+    await _firebaseService.updateSafetyBadge(propertyId, false, rejectionMessage);
+    await _firebaseService.updatePropertyStatus(propertyId, 'Rejected');
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
